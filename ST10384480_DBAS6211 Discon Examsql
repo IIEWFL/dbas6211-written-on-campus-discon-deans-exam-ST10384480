@@ -1,0 +1,132 @@
+--QUESTION3:
+-- 3.1 Creating the Student table
+CREATE TABLE Student (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(50) NOT NULL,
+    StudentSurname VARCHAR(50) NOT NULL,
+    StudentNumber VARCHAR(20) UNIQUE NOT NULL
+);
+
+-- 3.2 Creating the Lecturer table
+CREATE TABLE Lecturer (
+    LecturerID INT PRIMARY KEY,
+    LecturerName VARCHAR(50) NOT NULL,
+    LecturerSurname VARCHAR(50) NOT NULL
+);
+
+-- 3.3 Creating the Tutorial table
+CREATE TABLE Tutorial (
+    TutorialID INT PRIMARY KEY,
+    StudentID INT,
+    LecturerID INT,
+    TutorialDate DATE NOT NULL,
+    TutorialTime TIME NOT NULL,
+    TutorialDuration INT NOT NULL,
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID),
+    FOREIGN KEY (LecturerID) REFERENCES Lecturer(LecturerID)
+);
+
+-- 3.4 Inserting data into Student table
+INSERT INTO Student (StudentID, StudentName, StudentSurname, StudentNumber)
+VALUES
+(1, 'Debbie', 'Theart', 123456),
+(2, 'Thomas', 'Duncan', 654321);
+
+--Inserting data into Lecturer table
+INSERT INTO Lecturer (LecturerID, LecturerName, LecturerSurname)
+VALUES
+(1, 'Zintle', 'Nukani'),
+(2, 'Ravi', 'Maharaj');
+
+--Inserting data into Tutorial table
+INSERT INTO Tutorial (TutorialID, Date, Time, Duration, LecturerID, StudentID)
+VALUES
+(1, 2024-01-15, 9:00, 180, 2, 1),
+(2, 2024-01-18, 15:00, 240, 2, 2),
+(3, 2024-01-20, 10:00, 180, 1, 1),
+(4, 2024-01-21, 11:00, 180, 2, 1);
+
+-- 3.5 Query to display scheduled tutorials between 2024-01-16 and 2024-01-20 (inclusive)
+SELECT * 
+FROM Tutorial
+WHERE TutorialDate BETWEEN '2024-01-16' AND '2024-01-20';
+
+-- 3.6 Query to display student names and the total number of tutorials booked, sorted in descending order
+SELECT 
+    Student.StudentName, 
+    Student.StudentSurname, 
+    COUNT(Tutorial.TutorialID) AS TotalTutorials
+FROM Tutorial
+JOIN Student ON Tutorial.StudentID = Student.StudentID
+GROUP BY Student.StudentID
+ORDER BY TotalTutorials DESC;
+
+-- 3.7 Query to display all tutorials with lecturer and student details
+SELECT 
+    Tutorial.TutorialDate,
+    Tutorial.TutorialTime,
+    Lecturer.LecturerName,
+    Lecturer.LecturerSurname,
+    Student.StudentName,
+    Student.StudentSurname
+FROM Tutorial
+JOIN Lecturer ON Tutorial.LecturerID = Lecturer.LecturerID
+JOIN Student ON Tutorial.StudentID = Student.StudentID
+ORDER BY Tutorial.TutorialDate DESC;
+
+-- 3.8 Creating a view to list students with tutorials booked with Lecturer ID 2
+CREATE VIEW StudentsWithLecturer2 AS
+SELECT 
+    Student.StudentName, 
+    Student.StudentSurname
+FROM Tutorial
+JOIN Student ON Tutorial.StudentID = Student.StudentID
+WHERE Tutorial.LecturerID = 2
+ORDER BY Student.StudentSurname ASC;
+
+-- 3.9 Creating a stored procedure to get tutorials for a given date
+DELIMITER //
+
+CREATE PROCEDURE get_tutorials(IN tutorial_date DATE)
+BEGIN
+    SELECT 
+        Tutorial.TutorialTime,
+        Tutorial.TutorialDuration,
+        Lecturer.LecturerName,
+        Lecturer.LecturerSurname,
+        Student.StudentName,
+        Student.StudentSurname
+    FROM Tutorial
+    JOIN Lecturer ON Tutorial.LecturerID = Lecturer.LecturerID
+    JOIN Student ON Tutorial.StudentID = Student.StudentID
+    WHERE Tutorial.TutorialDate = tutorial_date
+    ORDER BY Tutorial.TutorialTime ASC;
+END //
+
+DELIMITER ;
+
+
+--QUESTION4:
+--4.1
+use students_ST10384480;
+
+--4.2
+db.students.insertMany([
+    {
+        StudentName: "Debbie",
+        StudentSurname: "Theart",
+        StudentDOB: ISODate("1980-03-17")
+    },
+    {
+        StudentName: "Thomas",
+        StudentSurname: "Duncan",
+        StudentDOB: ISODate("1976-08-12")
+    }
+]);
+
+--4.3
+db.students.find().pretty();
+
+--4.4
+db.students.find({ StudentDOB: { $gt: ISODate("1979-01-12") } }).pretty();
+
